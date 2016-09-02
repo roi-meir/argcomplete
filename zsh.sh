@@ -4,8 +4,7 @@ AUTO_LOG_PATH="/tmp/log"
 
 
 # TODO:
-# 1. python lo.py don't complete positional argument (argcomplete bug)
-# 2. ?????? ${argv[${argv[(I)filenames]:-0}-1]} ?????
+# 1. ?????? ${argv[${argv[(I)filenames]:-0}-1]} ?????
 
 clear_log() {
 	rm -f $AUTO_LOG_PATH
