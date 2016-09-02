@@ -3,6 +3,10 @@
 AUTO_LOG_PATH="/tmp/log"
 
 
+# TODO:
+# 1. python lo.py don't complete positional argument (argcomplete bug)
+# 2. ?????? ${argv[${argv[(I)filenames]:-0}-1]} ?????
+
 clear_log() {
 	rm -f $AUTO_LOG_PATH
 }
@@ -22,8 +26,8 @@ __python_argcomplete_expand_tilde() {
 __should_complete() {
 	local ARGCOMPLETE=0
 
-	executable=$1
-	script_path=$2
+	local executable=$1
+	local script_path=$2
 
     if [[ "$executable" == python* ]] || [[ "$executable" == pypy* ]]; then
         if [[ -f "$script_path" ]] && (head -c 1024 "$script_path" | grep --quiet "PYTHON_ARGCOMPLETE_OK") >/dev/null 2>&1; then
@@ -48,12 +52,12 @@ __should_complete() {
 
 
 _zsh_python_argcomplete_global() {
-	executable=`__python_argcomplete_expand_tilde $words[1]`
-	script_path=`__python_argcomplete_expand_tilde $words[2]`
+	local executable=`__python_argcomplete_expand_tilde $words[1]`
+	local script_path=`__python_argcomplete_expand_tilde $words[2]`
 	local IFS=$(echo -e '\v')
 
 	__should_complete $executable $script_path
-	ARGCOMPLETE=$?
+	local ARGCOMPLETE=$?
 
 	if [[ $ARGCOMPLETE == 0 ]]; then
 		log "Not ours to complete"
@@ -61,13 +65,13 @@ _zsh_python_argcomplete_global() {
 	fi
 
 	if [[ $ARGCOMPLETE == 1 ]]; then
-		script_path=""
+		local script_path=""
 	fi
 
 	compstate[insert]=menu
 
 	_compskip="all"
-	log "Ours to complete"
+	log "Ours to complete : $ARGCOMPLETE"
 
 	local -x COMP_LINE="$words"
 	(( COMP_POINT = 1 + ${#${(j. .)words[1,CURRENT]}} + $#QIPREFIX + $#IPREFIX + $#PREFIX ))
@@ -76,28 +80,25 @@ _zsh_python_argcomplete_global() {
     BASH_VERSINFO=( 2 05b 0 1 release )
     [[ ${argv[${argv[(I)nospace]:-0}-1]} = -o ]] && suf=( -S '' )
     
-    log "Running python script" 
+
+    log "Running python script **executable=$executable** **script_path=$script_path" 
 
     # get result from python script
-    matches=( $(IFS="$IFS" \
+    matches=( $(_ARGCOMPLETE_IFS="$IFS" \
                  COMP_LINE="$COMP_LINE" \
                  COMP_POINT="$COMP_POINT" \
                  _ARGCOMPLETE_COMP_WORDBREAKS="$COMP_WORDBREAKS" \
-                 _ARGCOMPLETE=1 \
+                 _ARGCOMPLETE="$ARGCOMPLETE" \
                  "$executable" "$script_path" 8>&1 9>&2 1>/dev/null 2>/dev/null) )
 
-    # here we have to use bash's IFS (\013) to separate the val string into an array, why?
- #    matches=("${(@s/$IFS/)val}")
- #    if [ ${#matches[@]} -le "1" ]; then
- #        # if there is only one match, a strange space will be put at the end of the line
- #        # remove it by http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable
- #        matches=("${val//[[:space:]]/}")
-	# fi
-	
-	log $matches
-	# matches=$val 
-	# matches=("${(@s/$IFS/)val}")
+	log "*****$matches****"
 
+	if [ ${#matches[@]} -le "1" ]; then
+      	matches=("${matches//[[:space:]]/}")
+  	fi
+
+	# matches=$val 
+	# matches=("${(@s/$IFS/)matches}")
 	if [[ -n $matches ]]; then
 		if [[ ${argv[${argv[(I)filenames]:-0}-1]} = -o ]]; then
 			log "What???"
@@ -106,14 +107,13 @@ _zsh_python_argcomplete_global() {
 	  		compadd -U -Q -f "${suf[@]}" -a matches && ret=0
 		else
 	  		# comadd reference http://zsh.sourceforge.net/Doc/Release/Completion-Widgets.html#Completion-Widgets
-	  		count=0
 	  		for item in "${matches[@]}"
 	  		do
+	  			log "\t Complete ***$item**"
 	    		# -V to preserve the completion orders http://stackoverflow.com/questions/15140396/zsh-completion-order
 	    		# -S to remove the trailing space after the completion. equal to 'complete -o nospace' in bash
 	    		# TODO: allow user to specify the complete_opts ?
 	    		compadd -U -S '' -- $item
-	    		(( count++ ))
 	  		done
 	  	ret=0
 		fi

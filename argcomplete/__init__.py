@@ -198,6 +198,8 @@ class CompletionFinder(object):
         if os.environ["_ARGCOMPLETE"] == "2":
             # Shell hook recognized the first word as the interpreter; discard it
             comp_words.pop(0)
+            if comp_words[0] == ifs:
+                comp_words.pop(0)
 
         debug("\nLINE: '{l}'\nPREQUOTE: '{pq}'\nPREFIX: '{p}'".format(l=comp_line, pq=cword_prequote, p=cword_prefix),
               "\nSUFFIX: '{s}'".format(s=cword_suffix),
