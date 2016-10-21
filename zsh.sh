@@ -5,6 +5,8 @@ AUTO_LOG_PATH="/tmp/log"
 
 # TODO:
 # 1. ?????? ${argv[${argv[(I)filenames]:-0}-1]} ?????
+# 2. posional args 
+
 
 clear_log() {
 	rm -f $AUTO_LOG_PATH
@@ -112,7 +114,7 @@ _zsh_python_argcomplete_global() {
 	    		# -V to preserve the completion orders http://stackoverflow.com/questions/15140396/zsh-completion-order
 	    		# -S to remove the trailing space after the completion. equal to 'complete -o nospace' in bash
 	    		# TODO: allow user to specify the complete_opts ?
-	    		compadd -U -S '' -- $item
+	    		compadd -U -- $item
 	  		done
 	  	ret=0
 		fi
