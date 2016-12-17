@@ -25,20 +25,26 @@ _bash_complete() {
 
   if [[ -n $matches ]]; then
     if [[ ${argv[${argv[(I)filenames]:-0}-1]} = -o ]]; then
+      echo "in this if" >> /tmp/lol
       compset -P '*/' && matches=( ${matches##*/} )
       compset -S '/*' && matches=( ${matches%%/*} )
       compadd -Q -f "${suf[@]}" -a matches && ret=0
     else
+      echo "in this else" >> /tmp/lol
       compadd -Q "${suf[@]}" -a matches && ret=0
     fi
   fi
-
+  echo "matches=${matches[*]}" >> /tmp/lol
+  echo "ret=$ret" >> /tmp/lol
   if (( ret )); then
-    if [[ ${argv[${argv[(I)default]:-0}-1]} = -o ]]; then
-      _default "${suf[@]}" && ret=0
-    elif [[ ${argv[${argv[(I)dirnames]:-0}-1]} = -o ]]; then
-      _directories "${suf[@]}" && ret=0
-    fi
+    #echo "in if ret" >> /tmp/lol
+    #if [[ ${argv[${argv[(I)default]:-0}-1]} = -o ]]; then
+    #  _default "${suf[@]}" && ret=0
+    #elif [[ ${argv[${argv[(I)dirnames]:-0}-1]} = -o ]]; then
+    #  _directories "${suf[@]}" && ret=0
+    #fi
+  else
+    _compskip="all"
   fi
 
   return ret
@@ -58,7 +64,7 @@ compgen() {
     g group j job k keyword u user v variable
   )
 
-  while getopts "o:A:G:C:F:P:S:W:X:abcdefgjkuv" name; do
+  while getopts "o:A:G:C:F:P:S:W:X:abcdefgjkuvD " name; do
     case $name in
       [abcdefgjkuv]) OPTARG="${shortopts[$name]}" ;&
       A)
@@ -122,7 +128,11 @@ compgen() {
 	  helptopic) ;;
 	esac
       ;;
+      D)
+      _compskip="all"
+      ;;
       F)
+      echo "In F!!!" >> /tmp/lol
         COMPREPLY=()
         local -a args
         args=( "${words[0]}" "${@[-1]}" "${words[CURRENT-2]}" )
@@ -156,7 +166,7 @@ compgen() {
   # support for the last, `word' option to compgen. Zsh's matching does a
   # better job but if you need to, comment this in and use compadd -U
   # (( $# >= OPTIND)) && results=( "${(M)results[@]:#${@[-1]}*}" )
-
+  echo "results=${results[*]}" >> /tmp/lol
   print -l -r -- "$prefix${^results[@]}$suffix"
 }
 
@@ -164,8 +174,13 @@ complete() {
   emulate -L zsh
   local args void cmd print remove
   args=( "$@" )
-  zparseopts -D -a void o: A: G: W: C: F: P: S: X: a b c d e f g j k u v \
+  zparseopts -D -a void o: A: G: W: C: F: P: S: X: a b c d e f D=first g j k u v \
       p=print r=remove
+
+  if [[ -n $first ]]; then
+      comdef_flags="-first-"
+  fi
+
   if [[ -n $print ]]; then
     printf 'complete %2$s %1$s\n' "${(@kv)_comps[(R)_bash*]#* }"
   elif [[ -n $remove ]]; then
@@ -173,9 +188,9 @@ complete() {
       unset "_comps[$cmd]"
     done
   else
-    echo "running compdef:  compdef _bash_complete\ ${(j. .)${(q)args[1,-1-$#]}} "$@" -first- "
+    echo "running compdef:  compdef _bash_complete\ ${(j. .)${(q)args[1,-1-$#]}} "$@" $comdef_flags"
     echo '$@=' "$@"
-    compdef _bash_complete\ ${(j. .)${(q)args[1,-1-$#]}} "$@" -first-
+    compdef _bash_complete\ ${(j. .)${(q)args[1,-1-$#]}} "$@" $comdef_flags
   fi
 }
 

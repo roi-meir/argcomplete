@@ -67,10 +67,11 @@ _python_argcomplete_global() {
             unset COMPREPLY
         fi
         # echo "${my_array[*]}"
-        echo "COMPREPLY=${COMPREPLY[*]}" >> /tmp/lol
+        # echo "COMPREPLY=${COMPREPLY[*]}" >> /tmp/lol
     else
         echo "in else" >> /tmp/lol
         # type -t _completion_loader | grep -q 'function' && _completion_loader "$@"
     fi
 }
-complete -o nospace -o default -o bashdefault -F _python_argcomplete_global
+#complete -o nospace -o default -o bashdefault -F _python_argcomplete_global
+complete -o nospace -o default -o bashdefault -D -F _python_argcomplete_global
