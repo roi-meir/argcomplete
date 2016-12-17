@@ -1,5 +1,14 @@
 #autoload
 
+
+# TODO:
+# *  _compskip only if -D 
+# *  remove comment from _directories and _default only if not -D
+# *  remove _compskip in -D parsing, working only in _bash_complete
+# *  remove logs
+# *  commit python-argcomplete to the main repo
+
+
 _bash_complete() {
   echo "lol `date`" >> /tmp/lol
   local ret=1
